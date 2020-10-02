@@ -48,7 +48,7 @@
         <item>
          <widget class="QTabWidget" name="mainTabWidget">
           <property name="currentIndex">
-           <number>0</number>
+           <number>2</number>
           </property>
           <widget class="QWidget" name="mainTab">
            <attribute name="title">
@@ -1986,7 +1986,7 @@
             <item>
              <widget class="QTabWidget" name="ffmpegSettingsTabWidget">
               <property name="currentIndex">
-               <number>0</number>
+               <number>2</number>
               </property>
               <widget class="QWidget" name="ffmpegGlobalOptionsTab">
                <attribute name="title">
