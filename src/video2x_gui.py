@@ -112,7 +112,7 @@ NVENC_VIDEO_ASSEMBLY_DEFAULTS = {
     'preset': NVENC_VIDEO_ASSEMBLY_PRESET[0], # slow
     'rc': NVENC_VIDEO_ASSEMBLY_RATE_CONTROL[8], # cbr_hq
     'tune': NVENC_VIDEO_ASSEMBLY_OUTPUT_TUNE[0], # hq
-    'profile': 'high'
+    'profile:v': 'main'
 }
 
 AMF_VIDEO_ASSEMBLY_RATE_CONTROL = [
@@ -132,7 +132,7 @@ AMF_VIDEO_ASSEMBLY_USAGE = [
 AMF_VIDEO_ASSEMBLY_DEFAULTS = {
     'usage': AMF_VIDEO_ASSEMBLY_USAGE[0], # transcoding
     'rc': AMF_VIDEO_ASSEMBLY_RATE_CONTROL[1], # cbr
-    'profile': 'high'
+    'profile:v': 'main'
 }
 
 # get current working directory before it is changed by drivers
@@ -790,7 +790,7 @@ class Video2XMainWindow(QMainWindow):
             self.config['ffmpeg']['assemble_video']['output_options'].pop('-crf', None)
             self.config['ffmpeg']['assemble_video']['output_options'].pop('-useage', None)
             self.config['ffmpeg']['assemble_video']['output_options']['-preset'] = self.ffmpeg_assemble_video_output_options_preset_combo_box.currentText()
-            self.config['ffmpeg']['assemble_video']['output_options']['-profile'] = self.ffmpeg_assemble_video_output_options_profile_line_edit.text()
+            self.config['ffmpeg']['assemble_video']['output_options']['-profile:v'] = self.ffmpeg_assemble_video_output_options_profile_line_edit.text()
             self.config['ffmpeg']['assemble_video']['output_options']['-rc'] = self.ffmpeg_assemble_video_output_options_rate_control_combo_box.currentText()
             self.config['ffmpeg']['assemble_video']['output_options']['-tune'] = self.ffmpeg_assemble_video_output_options_tune_combo_box.currentText()
         elif self.ffmpeg_codec_hardware == 'amf':
@@ -798,10 +798,10 @@ class Video2XMainWindow(QMainWindow):
             self.config['ffmpeg']['assemble_video']['output_options'].pop('-tune', None)
             self.config['ffmpeg']['assemble_video']['output_options'].pop('-crf', None)
             elf.config['ffmpeg']['assemble_video']['output_options']['-usage'] = self.ffmpeg_assemble_video_output_options_preset_combo_box.currentText()
-            self.config['ffmpeg']['assemble_video']['output_options']['-profile'] = self.ffmpeg_assemble_video_output_options_profile_line_edit.text()
+            self.config['ffmpeg']['assemble_video']['output_options']['-profile:v'] = self.ffmpeg_assemble_video_output_options_profile_line_edit.text()
             self.config['ffmpeg']['assemble_video']['output_options']['-rc'] = self.ffmpeg_assemble_video_output_options_rate_control_combo_box.currentText()
         else: # ffmpeg_codec_hardware == cpu
-            self.config['ffmpeg']['assemble_video']['output_options'].pop('-profile', None)
+            self.config['ffmpeg']['assemble_video']['output_options'].pop('-profile:v', None)
             self.config['ffmpeg']['assemble_video']['output_options'].pop('-rc', None)
             self.config['ffmpeg']['assemble_video']['output_options'].pop('-preset', None)
             self.config['ffmpeg']['assemble_video']['output_options'].pop('-useage', None)
@@ -957,10 +957,10 @@ class Video2XMainWindow(QMainWindow):
             else:
                 self.ffmpeg_assemble_video_output_options_preset_combo_box.setCurrentText(NVENC_VIDEO_ASSEMBLY_DEFAULTS['preset'])
 
-            if '-profile' in settings_output_options:
-                self.ffmpeg_assemble_video_output_options_profile_line_edit.setText(settings_output_options["-profile"])
+            if '-profile:v' in settings_output_options:
+                self.ffmpeg_assemble_video_output_options_profile_line_edit.setText(settings_output_options["-profile:v"])
             else:
-                self.ffmpeg_assemble_video_output_options_profile_line_edit.setText(NVENC_VIDEO_ASSEMBLY_DEFAULTS['profile'])
+                self.ffmpeg_assemble_video_output_options_profile_line_edit.setText(NVENC_VIDEO_ASSEMBLY_DEFAULTS['profile:v'])
 
             if '-rc' in settings_output_options:
                 nvenc_rc = self.get_defaults_for_hardware_type('rc',
@@ -1007,10 +1007,10 @@ class Video2XMainWindow(QMainWindow):
             else:
                 self.ffmpeg_assemble_video_output_options_preset_combo_box.setCurrentText(AMF_VIDEO_ASSEMBLY_DEFAULTS['usage'])
 
-            if '-profile' in settings_output_options:
-                self.ffmpeg_assemble_video_output_options_profile_line_edit.setText(settings_output_options["-profile"])
+            if '-profile:v' in settings_output_options:
+                self.ffmpeg_assemble_video_output_options_profile_line_edit.setText(settings_output_options["-profile:v"])
             else:
-                self.ffmpeg_assemble_video_output_options_profile_line_edit.setText(AMF_VIDEO_ASSEMBLY_DEFAULTS['profile'])
+                self.ffmpeg_assemble_video_output_options_profile_line_edit.setText(AMF_VIDEO_ASSEMBLY_DEFAULTS['profile:v'])
 
             if '-rc' in settings_output_options:
                 amf_rc = self.get_defaults_for_hardware_type('rc',

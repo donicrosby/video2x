@@ -2327,7 +2327,7 @@
                         <bool>true</bool>
                        </property>
                        <property name="text">
-                        <string>Profile (-profile)</string>
+                        <string>Profile (-profile:v)</string>
                        </property>
                       </widget>
                      </item>
@@ -2343,7 +2343,7 @@
                         </sizepolicy>
                        </property>
                        <property name="text">
-                        <string>high</string>
+                        <string>main</string>
                        </property>
                       </widget>
                      </item>
