@@ -51,6 +51,90 @@ AVAILABLE_DRIVERS = {
     'Anime4KCPP': 'anime4kcpp'
 }
 
+CPU_VIDEO_ASSEMBLY_OUTPUT_TUNE = [
+    'animation',
+    'film',
+    'grain',
+    'stillimage',
+    'fastdecode',
+    'zerolatency',
+    'psnr',
+    'ssim'
+]
+
+CPU_VIDEO_ASSEMBLY_DEFAULTS = {
+    'crf': 17,
+    'tune': CPU_VIDEO_ASSEMBLY_OUTPUT_TUNE[0] # animation
+}
+
+NVENC_VIDEO_ASSEMBLY_OUTPUT_TUNE = [
+    'hq',
+    'll',
+    'ull',
+    'lossless'
+]
+
+NVENC_VIDEO_ASSEMBLY_RATE_CONTROL = [
+    'constqp',
+    'vbr',
+    'cbr',
+    'vbr_minqp',
+    'll_2pass_quality',
+    'll_2pass_size',
+    'vbr_2pass',
+    'cbr_ld_hq',
+    'cbr_hq',
+    'vbr_hq'
+]
+
+NVENC_VIDEO_ASSEMBLY_PRESET = [
+    'slow',
+    'medium',
+    'fast',
+    'hp',
+    'hq',
+    'bd',
+    'll',
+    'llhq',
+    'llhp',
+    'lossless',
+    'losslesshp',
+    'p1',
+    'p2',
+    'p3',
+    'p4',
+    'p5',
+    'p6',
+    'p7'
+]
+
+NVENC_VIDEO_ASSEMBLY_DEFAULTS = {
+    'preset': NVENC_VIDEO_ASSEMBLY_PRESET[0], # slow
+    'rc': NVENC_VIDEO_ASSEMBLY_RATE_CONTROL[8], # cbr_hq
+    'tune': NVENC_VIDEO_ASSEMBLY_OUTPUT_TUNE[0], # hq
+    'profile': 'high'
+}
+
+AMF_VIDEO_ASSEMBLY_RATE_CONTROL = [
+    'cqp',
+    'cbr',
+    'vbr_peak',
+    'vbr_latency'
+]
+
+AMF_VIDEO_ASSEMBLY_USAGE = [
+    'transcoding',
+    'ultralowlatency',
+    'lowlatency',
+    'webcam'
+]
+
+AMF_VIDEO_ASSEMBLY_DEFAULTS = {
+    'usage': AMF_VIDEO_ASSEMBLY_USAGE[0], # transcoding
+    'rc': AMF_VIDEO_ASSEMBLY_RATE_CONTROL[1], # cbr
+    'profile': 'high'
+}
+
 # get current working directory before it is changed by drivers
 CWD = pathlib.Path.cwd()
 
@@ -214,6 +298,9 @@ class Video2XMainWindow(QMainWindow):
         QShortcut(QKeySequence(Qt.CTRL + Qt.Key_O), self, self.select_output_file)
         QShortcut(QKeySequence(Qt.CTRL + Qt.SHIFT + Qt.Key_I), self, self.select_input_folder)
         QShortcut(QKeySequence(Qt.CTRL + Qt.SHIFT + Qt.Key_O), self, self.select_output_folder)
+
+        # video assembly type
+        self.ffmpeg_codec_hardware = 'cpu' # cpu, nvenc, amf
 
         # menu bar
         self.action_exit = self.findChild(QAction, 'actionExit')
@@ -421,9 +508,18 @@ class Video2XMainWindow(QMainWindow):
         # assemble video
         self.ffmpeg_assemble_video_input_options_force_format_line_edit = self.findChild(QLineEdit, 'ffmpegAssembleVideoInputOptionsForceFormatLineEdit')
         self.ffmpeg_assemble_video_output_options_video_codec_line_edit = self.findChild(QLineEdit, 'ffmpegAssembleVideoOutputOptionsVideoCodecLineEdit')
+        self.ffmpeg_assemble_video_output_options_video_codec_line_edit.editingFinished.connect(self.showHideFfmpegOptions)
         self.ffmpeg_assemble_video_output_options_pixel_format_line_edit = self.findChild(QLineEdit, 'ffmpegAssembleVideoOutputOptionsPixelFormatLineEdit')
-        self.ffmpeg_assemble_video_output_options_crf_spin_box = self.findChild(QSpinBox, 'ffmpegAssembleVideoOutputOptionsCrfSpinBox')
+        self.ffmpeg_assemble_video_output_options_preset_label = self.findChild(QLabel, 'ffmpegAssembleVideoOutputOptionsGPUEncodingPresetLabel')
+        self.ffmpeg_assemble_video_output_options_preset_combo_box = self.findChild(QComboBox, 'ffmpegAssembleVideoOutputOptionsGPUEncodingPresetComboBox')
+        self.ffmpeg_assemble_video_output_options_profile_label = self.findChild(QLabel, 'ffmpegAssembleVideoOutputOptionsGPUEncodingProfileLabel')
+        self.ffmpeg_assemble_video_output_options_profile_line_edit = self.findChild(QLineEdit, 'ffmpegAssembleVideoOutputOptionsGPUEncodingProfileLineEdit')
+        self.ffmpeg_assemble_video_output_options_rate_control_label = self.findChild(QLabel, 'ffmpegAssembleVideoOutputOptionsGPUEncodingRateControlLabel')
+        self.ffmpeg_assemble_video_output_options_rate_control_combo_box = self.findChild(QComboBox, 'ffmpegAssembleVideoOutputOptionsGPUEncodingRateControlComboBox')
+        self.ffmpeg_assemble_video_output_options_tune_label = self.findChild(QLabel, 'ffmpegAssembleVideoOutputOptionsTuneLabel')
         self.ffmpeg_assemble_video_output_options_tune_combo_box = self.findChild(QComboBox, 'ffmpegAssembleVideoOutputOptionsTuneComboBox')
+        self.ffmpeg_assemble_video_output_options_crf_label = self.findChild(QLabel, 'ffmpegAssembleVideoOutputOptionsCrfLabel')
+        self.ffmpeg_assemble_video_output_options_crf_spin_box = self.findChild(QSpinBox, 'ffmpegAssembleVideoOutputOptionsCrfSpinBox')
         self.ffmpeg_assemble_video_output_options_bitrate_line_edit = self.findChild(QLineEdit, 'ffmpegAssembleVideoOutputOptionsBitrateLineEdit')
         self.ffmpeg_assemble_video_output_options_ensure_divisible_check_box = self.findChild(QCheckBox, 'ffmpegAssembleVideoOutputOptionsEnsureDivisibleCheckBox')
         self.ffmpeg_assemble_video_hardware_acceleration_check_box = self.findChild(QCheckBox, 'ffmpegAssembleVideoHardwareAccelerationCheckBox')
@@ -583,9 +679,8 @@ class Video2XMainWindow(QMainWindow):
         settings = self.config['ffmpeg']['assemble_video']
         self.ffmpeg_assemble_video_input_options_force_format_line_edit.setText(settings['input_options']['-f'])
         self.ffmpeg_assemble_video_output_options_video_codec_line_edit.setText(settings['output_options']['-vcodec'])
+        self.showHideFfmpegOptions(settings['output_options']['-vcodec']) # Do initialization of ffmpeg options
         self.ffmpeg_assemble_video_output_options_pixel_format_line_edit.setText(settings['output_options']['-pix_fmt'])
-        self.ffmpeg_assemble_video_output_options_crf_spin_box.setValue(settings['output_options']['-crf'])
-        self.ffmpeg_assemble_video_output_options_tune_combo_box.setCurrentText(settings['output_options']['-tune'])
         self.ffmpeg_assemble_video_output_options_bitrate_line_edit.setText(settings['output_options']['-b:v'])
 
         # migrate streams
@@ -691,8 +786,28 @@ class Video2XMainWindow(QMainWindow):
         self.config['ffmpeg']['assemble_video']['input_options']['-f'] = self.ffmpeg_assemble_video_input_options_force_format_line_edit.text()
         self.config['ffmpeg']['assemble_video']['output_options']['-vcodec'] = self.ffmpeg_assemble_video_output_options_video_codec_line_edit.text()
         self.config['ffmpeg']['assemble_video']['output_options']['-pix_fmt'] = self.ffmpeg_assemble_video_output_options_pixel_format_line_edit.text()
-        self.config['ffmpeg']['assemble_video']['output_options']['-crf'] = self.ffmpeg_assemble_video_output_options_crf_spin_box.value()
-        self.config['ffmpeg']['assemble_video']['output_options']['-tune'] = self.ffmpeg_assemble_video_output_options_tune_combo_box.currentText()
+        if self.ffmpeg_codec_hardware == 'nvenc':
+            self.config['ffmpeg']['assemble_video']['output_options'].pop('-crf', None)
+            self.config['ffmpeg']['assemble_video']['output_options'].pop('-useage', None)
+            self.config['ffmpeg']['assemble_video']['output_options']['-preset'] = self.ffmpeg_assemble_video_output_options_preset_combo_box.currentText()
+            self.config['ffmpeg']['assemble_video']['output_options']['-profile'] = self.ffmpeg_assemble_video_output_options_profile_line_edit.text()
+            self.config['ffmpeg']['assemble_video']['output_options']['-rc'] = self.ffmpeg_assemble_video_output_options_rate_control_combo_box.currentText()
+            self.config['ffmpeg']['assemble_video']['output_options']['-tune'] = self.ffmpeg_assemble_video_output_options_tune_combo_box.currentText()
+        elif self.ffmpeg_codec_hardware == 'amf':
+            self.config['ffmpeg']['assemble_video']['output_options'].pop('-preset', None)
+            self.config['ffmpeg']['assemble_video']['output_options'].pop('-tune', None)
+            self.config['ffmpeg']['assemble_video']['output_options'].pop('-crf', None)
+            elf.config['ffmpeg']['assemble_video']['output_options']['-usage'] = self.ffmpeg_assemble_video_output_options_preset_combo_box.currentText()
+            self.config['ffmpeg']['assemble_video']['output_options']['-profile'] = self.ffmpeg_assemble_video_output_options_profile_line_edit.text()
+            self.config['ffmpeg']['assemble_video']['output_options']['-rc'] = self.ffmpeg_assemble_video_output_options_rate_control_combo_box.currentText()
+        else: # ffmpeg_codec_hardware == cpu
+            self.config['ffmpeg']['assemble_video']['output_options'].pop('-profile', None)
+            self.config['ffmpeg']['assemble_video']['output_options'].pop('-rc', None)
+            self.config['ffmpeg']['assemble_video']['output_options'].pop('-preset', None)
+            self.config['ffmpeg']['assemble_video']['output_options'].pop('-useage', None)
+            self.config['ffmpeg']['assemble_video']['output_options']['-crf'] = self.ffmpeg_assemble_video_output_options_crf_spin_box.value()
+            self.config['ffmpeg']['assemble_video']['output_options']['-tune'] = self.ffmpeg_assemble_video_output_options_tune_combo_box.currentText()
+
         if self.ffmpeg_assemble_video_output_options_bitrate_line_edit.text() != '':
             self.config['ffmpeg']['assemble_video']['output_options']['-b:v'] = self.ffmpeg_assemble_video_output_options_bitrate_line_edit.text()
         else:
@@ -774,6 +889,17 @@ class Video2XMainWindow(QMainWindow):
         self.config['gifski']['once'] = self.gifski_once_check_box.isChecked()
         self.config['gifski']['quiet'] = self.gifski_quiet_check_box.isChecked()
 
+    def showHideFfmpegOptions(self, text=None):
+        if (self.ffmpeg_assemble_video_output_options_video_codec_line_edit.isModified()) or (text is not None):
+            text = self.ffmpeg_assemble_video_output_options_video_codec_line_edit.text()
+            if 'nvenc' in text:
+                self.ffmpeg_codec_hardware = 'nvenc'
+            elif 'amf' in text:
+                self.ffmpeg_codec_hardware = 'amf'
+            else:
+                self.ffmpeg_codec_hardware = 'cpu'
+            self.show_hide_ffmpeg_video_assembly_output_options()
+
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
             event.accept()
@@ -788,6 +914,140 @@ class Video2XMainWindow(QMainWindow):
 
         self.update_output_path()
         self.update_input_table()
+
+    def get_defaults_for_hardware_type(self, option, options_list, defaults):
+        settings_output_options = self.config['ffmpeg']['assemble_video']['output_options']
+        settings_option = settings_output_options['-' + option]
+        if settings_option not in options_list:
+            settings_option = defaults[option]
+        return settings_option
+
+
+    def show_hide_ffmpeg_video_assembly_output_options(self):
+        settings_output_options = self.config['ffmpeg']['assemble_video']['output_options']
+        if self.ffmpeg_codec_hardware == 'nvenc':
+            self.ffmpeg_assemble_video_output_options_preset_label.setHidden(False)
+            self.ffmpeg_assemble_video_output_options_preset_label.setText('Preset (-preset)')
+            self.ffmpeg_assemble_video_output_options_preset_combo_box.setHidden(False)
+            self.ffmpeg_assemble_video_output_options_preset_combo_box.setHidden(False)
+            self.ffmpeg_assemble_video_output_options_preset_combo_box.clear()
+            self.ffmpeg_assemble_video_output_options_preset_combo_box.addItems(NVENC_VIDEO_ASSEMBLY_PRESET)
+
+            self.ffmpeg_assemble_video_output_options_profile_label.setHidden(False)
+            self.ffmpeg_assemble_video_output_options_profile_line_edit.setHidden(False)
+
+            self.ffmpeg_assemble_video_output_options_rate_control_label.setHidden(False)
+            self.ffmpeg_assemble_video_output_options_rate_control_combo_box.setHidden(False)
+            self.ffmpeg_assemble_video_output_options_rate_control_combo_box.clear()
+            self.ffmpeg_assemble_video_output_options_rate_control_combo_box.addItems(NVENC_VIDEO_ASSEMBLY_RATE_CONTROL)
+
+            self.ffmpeg_assemble_video_output_options_crf_label.setHidden(True)
+            self.ffmpeg_assemble_video_output_options_crf_spin_box.setHidden(True)
+
+            self.ffmpeg_assemble_video_output_options_tune_label.setHidden(False)
+            self.ffmpeg_assemble_video_output_options_tune_combo_box.setHidden(False)
+            self.ffmpeg_assemble_video_output_options_tune_combo_box.clear()
+            self.ffmpeg_assemble_video_output_options_tune_combo_box.addItems(NVENC_VIDEO_ASSEMBLY_OUTPUT_TUNE)
+
+            if '-preset' in settings_output_options:
+                nvenc_preset = self.get_defaults_for_hardware_type('preset',
+                                                                   NVENC_VIDEO_ASSEMBLY_PRESET,
+                                                                   NVENC_VIDEO_ASSEMBLY_DEFAULTS)
+                self.ffmpeg_assemble_video_output_options_preset_combo_box.setCurrentText(nvenc_preset)
+            else:
+                self.ffmpeg_assemble_video_output_options_preset_combo_box.setCurrentText(NVENC_VIDEO_ASSEMBLY_DEFAULTS['preset'])
+
+            if '-profile' in settings_output_options:
+                self.ffmpeg_assemble_video_output_options_profile_line_edit.setText(settings_output_options["-profile"])
+            else:
+                self.ffmpeg_assemble_video_output_options_profile_line_edit.setText(NVENC_VIDEO_ASSEMBLY_DEFAULTS['profile'])
+
+            if '-rc' in settings_output_options:
+                nvenc_rc = self.get_defaults_for_hardware_type('rc',
+                                                               NVENC_VIDEO_ASSEMBLY_RATE_CONTROL,
+                                                               NVENC_VIDEO_ASSEMBLY_DEFAULTS)
+                self.ffmpeg_assemble_video_output_options_rate_control_combo_box.setCurrentText(nvenc_rc)
+            else:
+                self.ffmpeg_assemble_video_output_options_rate_control_combo_box.setCurrentText(NVENC_VIDEO_ASSEMBLY_DEFAULTS['rc'])
+
+            if '-tune' in settings_output_options:
+                nvenc_tune = self.get_defaults_for_hardware_type('tune',
+                                                                 NVENC_VIDEO_ASSEMBLY_OUTPUT_TUNE,
+                                                                 NVENC_VIDEO_ASSEMBLY_DEFAULTS)
+                self.ffmpeg_assemble_video_output_options_tune_combo_box.setCurrentText(nvenc_tune)
+            else:
+                self.ffmpeg_assemble_video_output_options_tune_combo_box.setCurrentText(NVENC_VIDEO_ASSEMBLY_DEFAULTS['tune'])
+
+        elif self.ffmpeg_codec_hardware == 'amf':
+            self.ffmpeg_assemble_video_output_options_preset_label.setHidden(False)
+            self.ffmpeg_assemble_video_output_options_preset_label.setText('Useage (-usage)')
+            self.ffmpeg_assemble_video_output_options_preset_combo_box.setHidden(False)
+            self.ffmpeg_assemble_video_output_options_preset_combo_box.clear()
+            self.ffmpeg_assemble_video_output_options_preset_combo_box.addItems(AMF_VIDEO_ASSEMBLY_USAGE)
+
+            self.ffmpeg_assemble_video_output_options_profile_label.setHidden(False)
+            self.ffmpeg_assemble_video_output_options_profile_line_edit.setHidden(False)
+
+            self.ffmpeg_assemble_video_output_options_rate_control_label.setHidden(False)
+            self.ffmpeg_assemble_video_output_options_rate_control_combo_box.setHidden(False)
+            self.ffmpeg_assemble_video_output_options_rate_control_combo_box.clear()
+            self.ffmpeg_assemble_video_output_options_rate_control_combo_box.addItems(AMF_VIDEO_ASSEMBLY_RATE_CONTROL)
+
+            self.ffmpeg_assemble_video_output_options_crf_label.setHidden(True)
+            self.ffmpeg_assemble_video_output_options_crf_spin_box.setHidden(True)
+
+            self.ffmpeg_assemble_video_output_options_tune_label.setHidden(True)
+            self.ffmpeg_assemble_video_output_options_tune_combo_box.setHidden(True)
+
+            if '-usage' in settings_output_options:
+                amf_usage = self.get_defaults_for_hardware_type('usage',
+                                                                AMF_VIDEO_ASSEMBLY_USAGE,
+                                                                AMF_VIDEO_ASSEMBLY_DEFAULTS)
+                self.ffmpeg_assemble_video_output_options_preset_combo_box.setCurrentText(amf_usage)
+            else:
+                self.ffmpeg_assemble_video_output_options_preset_combo_box.setCurrentText(AMF_VIDEO_ASSEMBLY_DEFAULTS['usage'])
+
+            if '-profile' in settings_output_options:
+                self.ffmpeg_assemble_video_output_options_profile_line_edit.setText(settings_output_options["-profile"])
+            else:
+                self.ffmpeg_assemble_video_output_options_profile_line_edit.setText(AMF_VIDEO_ASSEMBLY_DEFAULTS['profile'])
+
+            if '-rc' in settings_output_options:
+                amf_rc = self.get_defaults_for_hardware_type('rc',
+                                                             AMF_VIDEO_ASSEMBLY_RATE_CONTROL,
+                                                             AMF_VIDEO_ASSEMBLY_DEFAULTS)
+                self.ffmpeg_assemble_video_output_options_rate_control_combo_box.setCurrentText(amf_rc)
+            else:
+                self.ffmpeg_assemble_video_output_options_rate_control_combo_box.setCurrentText(AMF_VIDEO_ASSEMBLY_DEFAULTS['rc'])
+
+        else: # ffmpeg_codec_hardware == cpu
+            self.ffmpeg_assemble_video_output_options_preset_label.setHidden(True)
+            self.ffmpeg_assemble_video_output_options_preset_combo_box.setHidden(True)
+            self.ffmpeg_assemble_video_output_options_profile_label.setHidden(True)
+            self.ffmpeg_assemble_video_output_options_profile_line_edit.setHidden(True)
+            self.ffmpeg_assemble_video_output_options_rate_control_label.setHidden(True)
+            self.ffmpeg_assemble_video_output_options_rate_control_combo_box.setHidden(True)
+            self.ffmpeg_assemble_video_output_options_crf_label.setHidden(False)
+            self.ffmpeg_assemble_video_output_options_crf_spin_box.setHidden(False)
+            self.ffmpeg_assemble_video_output_options_tune_label.setHidden(False)
+            self.ffmpeg_assemble_video_output_options_tune_combo_box.setHidden(False)
+            self.ffmpeg_assemble_video_output_options_tune_combo_box.clear()
+            self.ffmpeg_assemble_video_output_options_tune_combo_box.addItems(CPU_VIDEO_ASSEMBLY_OUTPUT_TUNE)
+
+            if '-crf' in settings_output_options:
+                self.ffmpeg_assemble_video_output_options_crf_spin_box.setValue(settings_output_options['-crf'])
+            else:
+                self.ffmpeg_assemble_video_output_options_crf_spin_box.setValue(CPU_VIDEO_ASSEMBLY_DEFAULTS['crf'])
+
+            if '-tune' in settings_output_options:
+                cpu_tune = self.get_defaults_for_hardware_type('tune',
+                                                               CPU_VIDEO_ASSEMBLY_OUTPUT_TUNE,
+                                                               CPU_VIDEO_ASSEMBLY_DEFAULTS)
+                self.ffmpeg_assemble_video_output_options_tune_combo_box.setCurrentText(cpu_tune)
+            else:
+                self.ffmpeg_assemble_video_output_options_tune_combo_box.setCurrentText(CPU_VIDEO_ASSEMBLY_DEFAULTS['tune'])
+
+        #self.ffmpeg_assemble_video_output_options_group_box.update()
 
     def enable_line_edit_file_drop(self, line_edit: QLineEdit):
         line_edit.dragEnterEvent = self.dragEnterEvent
@@ -1317,5 +1577,6 @@ if __name__ == '__main__':
     # on GUI exception, print error message in console
     # and hold window open using input()
     except Exception:
-        traceback.print_exc()
+
+        traceback.print_exc(file=sys.stdout)
         input('Press enter to close')

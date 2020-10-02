@@ -626,7 +626,7 @@
             <item>
              <widget class="QTabWidget" name="driversTabWidget">
               <property name="currentIndex">
-               <number>0</number>
+               <number>5</number>
               </property>
               <widget class="QWidget" name="waifu2xCaffeTab">
                <attribute name="title">
@@ -1986,7 +1986,7 @@
             <item>
              <widget class="QTabWidget" name="ffmpegSettingsTabWidget">
               <property name="currentIndex">
-               <number>2</number>
+               <number>0</number>
               </property>
               <widget class="QWidget" name="ffmpegGlobalOptionsTab">
                <attribute name="title">
@@ -2215,22 +2215,201 @@
                     </layout>
                    </item>
                    <item>
-                    <layout class="QHBoxLayout" name="ffmpegAssembleVideoOutputOptionsCrfHorizontalLayout">
+                    <layout class="QHBoxLayout" name="ffmpegAssembleVideoOutputOptionsGPUEncodingPresetHorizontalLayout">
                      <item>
-                      <widget class="QLabel" name="ffmpegAssembleVideoOutputOptionsCrfLabel">
+                      <widget class="QLabel" name="ffmpegAssembleVideoOutputOptionsGPUEncodingPresetLabel">
                        <property name="text">
-                        <string>H.264/H.265 Constant Rate Factor (-crf)</string>
+                        <string>Preset (-preset)</string>
                        </property>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QSpinBox" name="ffmpegAssembleVideoOutputOptionsCrfSpinBox">
-                       <property name="maximum">
-                        <number>51</number>
+                      <widget class="QComboBox" name="ffmpegAssembleVideoOutputOptionsGPUEncodingPresetComboBox">
+                       <item>
+                        <property name="text">
+                         <string>slow</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>medium</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>fast</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>hp</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>hq</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>bd</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>ll</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>llhq</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>llhp</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>lossless</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>losslesshp</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>p1</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>p2</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>p3</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>p4</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>p5</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>p6</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>p7</string>
+                        </property>
+                       </item>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="ffmpegAssembleVideoOutputOptionsGPUEncodingProfileHorizontalLayout">
+                     <item>
+                      <widget class="QLabel" name="ffmpegAssembleVideoOutputOptionsGPUEncodingProfileLabel">
+                       <property name="enabled">
+                        <bool>true</bool>
                        </property>
-                       <property name="value">
-                        <number>17</number>
+                       <property name="text">
+                        <string>Profile (-profile)</string>
                        </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLineEdit" name="ffmpegAssembleVideoOutputOptionsGPUEncodingProfileLineEdit">
+                       <property name="enabled">
+                        <bool>true</bool>
+                       </property>
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string>high</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="ffmpegAssembleVideoOutputOptionsGPUEncodingRateControlHorizontalLayou">
+                     <item>
+                      <widget class="QLabel" name="ffmpegAssembleVideoOutputOptionsGPUEncodingRateControlLabel">
+                       <property name="text">
+                        <string>Rate-Control (-rc)</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QComboBox" name="ffmpegAssembleVideoOutputOptionsGPUEncodingRateControlComboBox">
+                       <item>
+                        <property name="text">
+                         <string>constqp</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>vbr</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>cbr</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>vbr_minqp</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>ll_2pass_quality</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>ll_2pass_size</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>vbr_2pass</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>cbr_ld_hq</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>cbr_hq</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>vbr_hq</string>
+                        </property>
+                       </item>
                       </widget>
                      </item>
                     </layout>
@@ -2289,6 +2468,27 @@
                          <string>ssim</string>
                         </property>
                        </item>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="ffmpegAssembleVideoOutputOptionsCrfHorizontalLayout">
+                     <item>
+                      <widget class="QLabel" name="ffmpegAssembleVideoOutputOptionsCrfLabel">
+                       <property name="text">
+                        <string>H.264/H.265 Constant Rate Factor (-crf)</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QSpinBox" name="ffmpegAssembleVideoOutputOptionsCrfSpinBox">
+                       <property name="maximum">
+                        <number>51</number>
+                       </property>
+                       <property name="value">
+                        <number>17</number>
+                       </property>
                       </widget>
                      </item>
                     </layout>
